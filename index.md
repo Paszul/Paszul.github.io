@@ -1,2 +1,1 @@
-### Jakub Paszulewicz
-## PhDin spe:)
+
