@@ -1,0 +1,1230 @@
+---
+title: "Wprowadzenie do statystyki, Rozkład z próby, Test t-Studenta"
+author: "Jakub Paszulewicz"
+date: "19/04/2021"
+output: slidy_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Rozkład średniej z próby
+## Pobieranie próbek z zmiennej losowej o rozkładzie normalnym z znanymi parametrami mu/sigma
+
+
+* Gdy dysponujemy **pojedynczą próbką**, wiemy jak możemy obliczyć maksymalną wiarygodność dla średniej z próby oraz odchylenia standardowego, $\hat \mu$ and $\hat \sigma$.
+
+* Wyobraź sobie, że pobierasz wielokrotnie takie próbki; dla każdej takiej próbki, możesz obliczyć za każdym razem średnią. Możemy to zasymulować: 
+
+```{r}
+x<-rnorm(100,mean=500,sd=50)
+mean(x)
+x<-rnorm(100,mean=500,sd=50)
+mean(x)
+x<-rnorm(100,mean=500,sd=50)
+mean(x)
+x1<-rnorm(100000,mean=500,sd=50)
+mean(x1)
+hist(x1)
+```
+
+
+
+
+# Rozkład średniej z próby
+## Pobieranie próbek z zmiennej losowej o rozkładzie normalnym z znanymi parametrami mu/sigma
+
+Zasymulujemy ponowne pobieranie próbek..... 1000 razy:
+
+```{r}
+nsim<-1000 # liczba symulacji
+n<-100 # liczba osbserwacji w kazdej próbie/symulacji
+mu<-500 # średnia 
+sigma<-100 # odchylenie standardowe
+samp_distrn_means<-rep(NA,nsim) # pusta zmienna 1000 pustych miejsc na symulowane średnie
+samp_distrn_sd<-rep(NA,nsim) # pusta zmienna 1000 pustych miejsc na symulowane odch.std
+for(i in 1:nsim){ # w każdej z tysiąca iteracji zapisanych jako jedno x
+  x<-rnorm(n,mean=mu,sd=sigma) # zapisz wygenerowanych 100 obserwacji
+  samp_distrn_means[i]<-mean(x) # z każdej symulowanej próbki podaj średnią i zapisz
+  samp_distrn_sd[i]<-sd(x) # z każdej symulowanej próbki podaj średnią i zapisz
+}
+```
+
+# Rozkład średniej z próby
+## Pobieranie próbek z zmiennej losowej o rozkładzie normalnym z znanymi parametrami mu/sigma
+
+Wykres rozkładu średnich powstały w wyniku wielokrotnego pobierania próbek:
+
+```{r ,echo=FALSE,fig.height=4}
+hist(samp_distrn_means,main="Rozkład średniej z próby",
+     freq=F,xlab=expression(hat(mu)),ylab="gęstość prawdopodobieństwa")
+```
+
+
+
+
+
+# Pobieranie próbek z zmiennej losowej o rozkładzie wykładniczym
+## Rozkład średniej z próby
+
+Co ciekawe, wcale nie jest konieczne by rozkład zmiennej losowej z której pobieramy próbki był normalny.
+
+W tym przykładzie rozkład będzie wykładniczy:
+
+```{r}
+x<-rexp(1000)
+hist(x,main="próbka o rozkładzie wykładniczym",
+     freq=F,xlab=expression(mu),ylab="gęstość prawdopodobieństwa")
+
+samp_distrn_means_exp<-rep(NA,nsim) # pusta zmienna 1000 pustych miejsc na symulowane średnie
+samp_distrn_sd_exp<-rep(NA,nsim) # pusta zmienna 1000 pustych miejsc na symulowane odch.std
+for(i in 1:nsim){
+  x<-rexp(n)
+  samp_distrn_means_exp[i]<-mean(x)
+  samp_distrn_sd_exp[i]<-sd(x)
+}
+
+```
+
+
+
+# Rozkład średniej z próby
+ 
+## próbki pobrane z "populacji o rozkładzie wykładniczym" dla danej cechy
+
+```{r,echo=FALSE,fig.height=4}
+hist(samp_distrn_means_exp,main="Rozkład średniej z próby wykładniczej",
+     freq=F,xlab=expression(hat(mu)),ylab="gęstość prawdopodobieństwa")
+```
+
+
+
+# Centralne twierdzenie graniczne
+
+## twierdzenia:
+
+* Przy bardzo licznym pobieraniu próbek (gdy N -> $\inf$) pochodzących z zbioru o ustalonej średniej oraz odchyleniu standardowemu, rozkład średniej z próby będzie miał w przybliżeniu rozkład normalny, niezależnie od tego jakiemu rozkładowi podlega zbiór z którgo pobieramy próbki (ważne jest tylko by zbiór ten miał zdefiniwaną średnią oraz wariancję).
+
+* Twierdzenie to stanowi podstawę w wnioskowaniu statystycznym.
+
+
+# Błąd standardowy
+
+## Rozkład średniej z próby
+
+Możemy obliczyć odchylenie standardowe dla rozkładu średnich z próby:
+
+```{r}
+## oszacowanie z symulacji:
+sd(samp_distrn_means)
+```
+
+
+## Rozkład średniej z próby
+
+Dalszym ciekawym faktem jest to, że możemy obliczyć samo odchylenie sandardowe rozkładu próby **na podstawie jednej pobranej próbki** o liczebności $n$:
+
+\[
+\frac{\hat\sigma}{\sqrt{n}}
+\]
+
+```{r}
+x<-rnorm(100,mean=500,sd=100)
+hat_sigma<-sd(x)
+hat_sigma/sqrt(n)
+```
+
+
+# Rozkład średniej z próby
+
+
+* Więc, z próbki liczącej $n$ obserwacji, oraz odchyleniu standardowemu $\sigma$ lub maksymalnie wiarygodnemu oszacowaniu (MLE) $\hat\sigma$, możemy obliczyć 
+* odchylenie standardowe rozkładu z próby.
+* Będziemy nazywali to odchylenie standardowe oszacowaniem **błędu standardowego** lub
+po prostu **błędem standardowym**.
+
+\[
+SE = \frac{\hat\sigma}{\sqrt{n}}
+\]
+
+* mówimy tu o *oszacowaniu* ponieważ próbujemy oszacować błąd standardowy używając do tego oszacowań $\sigma$.
+
+
+# Przedziały ufności
+
+Błąd standardowy pozwoli nam na zdefiniowanie tzw. **95 % przedziału ufności**:
+
+\[
+\hat\mu \pm 2 SE
+\]
+
+Także , dla średniej, definiujemy *95 % przedział ufności* następująco:
+
+\[
+\hat\mu \pm 2 \frac{\hat\sigma}{\sqrt{n}}
+\]
+
+# Przedziały ufności
+
+
+w naszym przypadku:
+```{r}
+## dolna granica przedziału:
+mu-(2*hat_sigma/sqrt(n))
+## górna granica przedziału:
+mu+(2*hat_sigma/sqrt(n))
+```
+
+## znaczenie 95 % przedziału ufności
+
+Jeżeli będziesz powtarzał pobieranie próbek i dla każdej pobranej próbki obliczał przedział ufności, 95 % tych przedziałów ufności będzie zawierało prawdziwą wartość średniej populacji.
+
+```{r}
+lower<-rep(NA,nsim)
+upper<-rep(NA,nsim)
+for(i in 1:nsim){
+  x<-rnorm(n,mean=mu,sd=sigma)
+  lower[i]<-mean(x) - 2 * sd(x)/sqrt(n)
+  upper[i]<-mean(x) + 2 * sd(x)/sqrt(n)
+}
+```
+
+
+# znaczenie 95 % przedziału ufności
+
+```{r}
+## sprawdzimy ile przedziałów ufności zawiera prawdziwą średnią :
+CIs<-ifelse(lower<mu & upper>mu,1,0)
+table(CIs)
+## w przyblizeniu 95% przedziałów ufności zawiera prawdziwą średnią:
+table(CIs)[2]/sum(table(CIs))
+```
+
+## znaczenie 95 % przedziału ufności
+
+```{r, echo=FALSE,fig.height=4}
+se <- function(x)
+      {
+        y <- x[!is.na(x)] # usuwanie (o ile występują) brakujących wartości
+        sqrt(var(as.vector(y))/length(y))
+}
+ci <- function (scores){
+m <- mean(scores,na.rm=TRUE)
+stderr <- se(scores)
+len <- length(scores)
+upper <- m + qt(.975, df=len-1) * stderr 
+lower <- m + qt(.025, df=len-1) * stderr 
+return(data.frame(lower=lower,upper=upper))
+}
+lower <- rep(NA,100)
+upper <- rep(NA,100)
+
+for(i in 1:100){ 
+  sample <- rnorm(100,mean=60,sd=4)
+  lower[i] <- ci(sample)$lower
+  upper[i] <- ci(sample)$upper
+}
+  
+cis <- cbind(lower,upper)
+
+store <- rep(NA,100)
+
+pop.mean<-60
+pop.sd<-4
+
+for(i in 1:100){ 
+  sample <- rnorm(100,mean=pop.mean,sd=pop.sd)
+  lower[i] <- ci(sample)$lower
+  upper[i] <- ci(sample)$upper
+  if(lower[i]<pop.mean & upper[i]>pop.mean){
+    store[i] <- TRUE} else {
+      store[i] <- FALSE}
+}
+
+## potrzebne do dalszego wykresu:
+cis <- cbind(lower,upper)
+
+main.title<-"95 % PU w 100 powtórzonych/pobranych próbkach"
+
+line.width<-ifelse(store==FALSE,2,1)
+cis<-cbind(cis,line.width)
+x<-0:100
+y<-seq(55,65,by=1/10)
+plot(x,y,type="n",xlab="i-ta pobrana próbka",
+     ylab="Wyniki",main=main.title)
+abline(60,0,lwd=2)
+x0<-x
+x1<-x
+arrows(x0,y0=cis[,1],
+       x1,y1=cis[,2],length=0,lwd=cis[,3])
+```
+
+# znaczenie 95 % przedziału ufności
+
+
+* 95 % PU z konkretnej próbki **nie** oznacza prawdopodobieństawa, że prawdziwa wartość średniej z populacji znajduje się w obrębie tego szczególnego PU.
+
+* Dlatego, PU ma bardzo mylącą (niezbyt użyteczną!) interpretację.
+
+* W statystyce Bayesowskiej używa się przedziałów wiarygodności, które posiadają o wiele sensowniejszą interpretację.
+
+Niemniej, rzy dużych liczebnościach próby, przedział wiarygodności oraz ufności iw zasadzie są takie same.
+
+Z tego powodu też, PU jest często wykorzystywany (technicznie jest to niepoprawne!) do opisu niepewności naszego oszacowania średniej.
+
+
+# Najważniejsze "informacje do zapamiętania" z tego wykładu
+
+* Możemy obliczyć oszacowania maksymalnej wiarygodności (MLE) średniej $\bar{x}=\hat\mu$ oraz odchylenia standardowego $\hat\sigma$ żeby oszacować prawdziwe lecz nieznane parametry w populacji.
+
+\[
+\bar{x} = \frac{\sum_{i=1}^n x_i}{n}
+\]
+* Dla danej próbki, po oszacowaniu $\hat\sigma$, możemy oszacować błąd standardowy:
+
+\[
+SE=\hat\sigma/\sqrt{n}
+\]
+* to pozwala nam na zdefiniowanie 95 % PU dla oszacowania średniej:
+
+\[
+\hat \mu \pm 2\times SE
+\]
+Posiadając te informacje możemy teraz przejść do wnioskowania statystycznego i testowania hipotez, a właściwie testowania hipotezy zerowej 
+(NHST - Null Hypothesis significance testing)
+
+# O czym ważnym mówilismy do tej pory
+
+* Zdefiniowaliśmy czym jest zmienna losowa.
+* Wiemy czym jest gęstość prawdopodobieństwa (PDF) oraz prawdopodobieństwo skumulowane (CDF), i wiemy jak obliczyć $P(X<x)$.
+* Wiemy czym jest oszacowanie maksymalnej wiarygodności.
+* Wiemy czym jest Rozkład średniej z próby.
+
+To daje nam podstawy by zrozumieć zasadę działania null hypothesis significance testing (NHST).
+
+
+# Wnioskowanie ststystyczne
+
+## Testowanie hipotez
+
+Założmy że mamy losową próbkę o liczebności $n$, a dane pochodzą z rozkładu $N(\mu,\sigma)$ ..... normalnego. 
+
+Możemy oszacować średnią dla próbki $\bar{x}=\hat \mu$ oraz $\hat\sigma$, co w następnje kolejności pozwala nam oszacować Rozkład średniej z prób przy (hipotetycznym) powtarzanym próbkowaniu:
+
+\[
+N(\bar{x},\frac{\hat \sigma}{\sqrt{n}})
+\]
+
+# Testowanie hipotez dla jednej próby
+
+Wyobraźny sobie, że pobieramy **niezależną** losową próbkę z zmiennej losowej X, która ma rozkład normalny, z średnią wynoszącą 12 oraz odchyleniem standardowym, które wynosi 10, liczebność próby to 11. Oszacowujemy średnią oraz błąd standardowy:
+
+```{r}
+probka <- rnorm(11,mean=12,sd=10)
+(x_bar<-mean(probka))
+(SE<-sd(probka)/sqrt(11))
+```
+
+
+# test-t dla jednej próby
+
+Podejście jakim jest testowanie hipotezy zerowej polega na postawieniu hipotezy zerowej która mówi, że średnia $\mu$ ma jakąś ustaloną wartość. Na przykład:
+
+\[
+H_0: \mu = 0
+\]
+
+Sprowadza się to do założenia, że prawdziwe rozkłady średnich z próby (w przybliżeniu  ^) są normalne a ich środek znajduje się wokół zera *z błędem standardowym oszacowanym na podstawie próbki*.
+
+
+^ za chwilę wyjaśnimy to sobie bardziej precyzyjnie.
+
+
+# rozkład dla Hipotezy zerowej H0
+
+```{r,echo=FALSE,fig.height=4}
+x<-seq(-20,20,by=0.1)
+plot(x,dt(x,df=10),type="l",main="",
+     ylab="gęstość prawdopodobieństwa")
+points(x_bar/SE,0,col="red",pch=20)
+text(x=x_bar/SE,y=0.05,label="średnia z próbki",col="red")
+```
+
+
+
+# NHST Null Hypothesis Significance Testsing - Testowanie istotności przy pomocy hipotezy zerowej
+
+Intuicyjnie rzecz biorąc cały pomysł polega na tym że:
+
+* jeżeli średnia z próbki $\bar{x}$ jest blisko hipotetycznemu $\mu$ (tutaj, 0), to dane są (być może) "spójne" z rozkładem dla hipotezy zerowej H0.
+
+* jeżeli średnia z próbki $\bar{x}$ jest daleko od hipotetycznego $\mu$, to dane nie są (być może) "spójne" z rozkładem dla hipotezy zerowej H0. ^
+
+Formalizujemy ''blisko'' oraz ''daleko'' poprzez ustalenie o ile błędów standardowych oddalona jest średnia z próbki (H1) od hipotetycznej średniej zerowej (HO):
+
+\[
+t \times SE = \bar{x} - \mu
+\]
+
+W ten sposób kwantyfikujemy dystans średniej z próbki od $\mu$ w jednostkach błędu standardowego średniej.
+
+^ hipoteza zerowa to na przykład twierdzenie: że różnica między grupą kontrolną i eksperymentalną wynosi 0; Albo, że średnie IQ w populacji dzieci z trudnościami w uczeniu to 90.
+
+# NHST Null Hypothesis Testsing - Testowanie istotności przy użyciu hipotezy zerowej
+
+Więc, dysponując średnią z próbki oraz średnią dla hipotezy zerowej $\mu$, możemy oszacować statystykę T: 
+
+\[
+t  = \frac{\bar{x} - \mu}{SE}
+\]
+
+Nazwiemy to **Statystyką/wartością T**. Jak ważny jest to wskaźnik stanie się zaraz jasne.
+
+Dysponując tą wartością możemy obliczyć prawdopodobieństwo otrzymania średniej jak w naszej próbce $\bar{x}$ (lub też jeszcze bardziej ekstremalny, czytaj wyższy wynik), przy hipotezie zerowej H0.
+
+
+
+# NHST Null Hypothesis significance Testsing - Testowanie instotnosci przy użyciu hipotezy zerowej
+
+Wartość:
+
+\[
+T  = \frac{\bar{X} - \mu}{SE}
+\]
+
+podlega rozkładowi T-Studenta, który jest zdefiniowany poprzez liczebność próby $n$. 
+wyrazimy to w sposób następujący: $T \sim t(n-1)$ 
+
+Warto wtym miejscu zapamiętać, że dla dużych $n$, $T\sim N(0,1)$. 
+
+
+# NHST Null Hypothesis significance Testsing - Testowanie instotnosci przy użyciu hipotezy zerowej
+
+Więc przy danej wielkości próbki $n$, oraz zakładając prawdziwość hipotezy zerowej H0 , możemy użyć rozkładu T-studenta odpowiadającego rozkładowi hipotezy zerowej H0.
+
+Dla dużych $n$, moglibyśmy nawet użyć rozkładu noermalnego N(0,1), niemniej przy porównywaniu 2 średnich jest tradycją w psychologii, żeby używać rozkładu T-Studenta niezalżnie od liczebności próbek $n$.
+
+
+
+
+# Rozkład normalny a rozkład T-Studenta
+
+* Rozkład T-Studenta ma jako parametr stopnie swobody $n-1$, gdzie $n$ oznacza liczebność próby (w porównaniu z rozkładem normalnym, który jako parametry ma śrenią oraz wariancję/odchylenie satndardowe).
+* Rozkład T-Studenta przy niewielkich liczebnościach $n$ powiedzmy $n<20$ ma "grubsze ogony" w porównaniu z rozkładem normalnym , lecz przy większej liczebnosci próby, Rozkład T-Studenta oraz rozkład normalny są w zasadzie identyczne.
+
+
+# Rozkład normalny a rozkład T-Studenta
+```{r,echo=FALSE,fig.height=4}
+range <- seq(-4,4,.01)  
+
+op<-par(mfrow=c(2,2),pty="s")
+
+op<-par(mar=c(2,2,3,2),pty="s")
+
+ for(i in c(2,5,15,20)){
+   plot(range,dnorm(range),type="l",lty=1,
+        xlab="",ylab="",
+        cex.axis=1,cex.axis=0.8)
+   lines(range,dt(range,df=i),lty=2,lwd=1)
+   mtext(paste("df=",i),cex=1.2)
+ }
+```
+
+
+
+# Test T-Studenta "obszar odrzucenia"
+
+Tak więc, procedura testowania hipotezy zerowej polega na:
+
+* Zdefiniuj hipotezę zerową H0: na przykład, $H_0: \mu = 0$.
+* Przy określonej liczebności $n$, oszacuj średnią $\bar{x}$, odchylenie standardowe $s$, błąd standardowy $s/\sqrt{n}$.
+* Oblicz wartość T:
+
+\[
+t=\frac{\bar{x}-\mu}{s/\sqrt{n}}
+\]
+
+* Odrzuć hipotezę zerową gdy wartość T jest duża (zaraz sprecyzujemy co oznacza duża).
+
+
+
+# Test T-Studenta
+
+W jaki sposób zadecydować o odrzuceniu hipotezy zerowej? Intuicyjnie, gdy wartość T z próby jest na tyle duża, że lokuje się daleko w *którymkolwiek* ogonie rozkładu.
+
+
+
+# Test T-Studenta
+
+```{r,echo=FALSE,fig.height=4}
+x<-seq(-20,20,by=0.1)
+plot(x,dt(x,df=10),type="l",main="t(n-1)",
+     ylab="gęstość prawdopodobieństwa")
+points(x_bar/SE,0,col="red",pch=20)
+text(x=x_bar/SE,y=0.01,label="średnia dla próbki",col="red")
+
+lower<-qt(0.025,df=10)
+upper<-qt(0.975,df=10)
+abline(v=lower)
+abline(v=upper)
+
+x1 <- seq(upper,20,abs(0.975)/5)
+y1 <- dt(x1,df=10)
+polygon(c(x1, rev(x1)), 
+        c(rep(0, length(x1)), rev(y1)), 
+        col = gray(0.3))
+
+x1 <- seq(-20,lower,abs(0.975)/5)
+y1 <- dt(x1,df=10)
+polygon(c(x1, rev(x1)), 
+        c(rep(0, length(x1)), rev(y1)), 
+        col = gray(0.3))
+```
+
+
+# Test T-Studenta "obszar odrzucenia"
+
+
+* Dla określonej liczbności N próbki, możemy ustalić "obszar odrzucenia" używając do tego funkcji qt -odwróconej dystrybuanty"  (patrz wykład wprowadzający1).
+* Ponieważ kształt rozkładu T-Studenta zależy od stopni swobody (n-1), **krytyczna wartość T** powyżej której odzrzucamy hipotezę zerową HO,  będzie inna w zależności od wielkości próby. 
+* Dla dużych liczebności, powiedzmy $n>50$, punkt odrzucenia wynosi coś około 2.
+
+
+```{r}
+abs(qt(0.025,df=15))
+abs(qt(0.025,df=50))
+```
+
+
+
+
+# Test T-Studenta "obszar odrzucenia"
+
+Rozważmy wartość T z próbki w przykładzie, którego cały czas używamy:
+
+```{r}
+## średnia hipotezy zerowej:
+mu<-0
+x_bar
+(t_value<-(x_bar-mu)/SE)
+```
+
+Przypomnijmy sobie,że wartość T dla próbki odzwierciedlająca położenie średniej z tejże  mówi nam o niczym więcej jak o odległości średniej z próbki od średniej dla hipotezy zerowej H0 $\mu$ w jednostkach błędu standardowego.
+
+\[
+t=\frac{\bar{x}-\mu}{s/\sqrt{n}} \hbox{ lub } t\frac{s}{\sqrt{n}}=\bar{x}-\mu
+\]
+
+
+# Test T-Studenta "obszar odrzucenia"
+
+Więc przy dużych liczebnościach próbek, jeżeli $\mid t\mid >2$ (w przybliżeniu), mozemy odrzucić hipotezę zerową H0. 
+
+Przy mniejszych liczebnościach $n$ próbek, możesz obliczyć wartość krytyczną T:
+
+*qt(0.025,df=n-1)* 
+
+jest to krytyczna wartość T po **lewej** stronie rozkładu T-Studenta.
+Odpowiednią wartością  po prawej stronie wyrazimy następująco:
+
+*qt(0.975,df=n-1)*
+
+
+Ich wartości bezwzględne są oczywiście identyczne (rozkład jest symetryczny).
+
+
+# Rozkład normalny a rozkład T-Studenta
+
+Biorąc pod uwagę określoną wartość stopni swobody,
+możemy obliczyć obszar pod funkcją gęstości prawdopodobieństwa tak samo jak w przypadku rozkładu normalnego:
+
+```{r}
+pt(-2,df=10)
+pt(-2,df=20)
+pt(-2,df=50)
+```
+
+Gdy stopnie swobody przyjmują duże wartości, obszr pod funkcją  na lewą stronę od -2 wyności w przybliżeniu 0.025.
+
+# Rodzaje testów T-Studenta
+
+* test - T Studenta dla jednej próby
+
+* test - T Studenta dla prób niezależnych
+** test -T Studenta równe wariancje
+** test -T Studenta nierówne liczebności,zbliżone wariancje
+** test -T Welcha nierówne liczebności,nierówne wariancje
+
+* test - T Studenta dla prób zależnych (pomiarów powtarzanych)
+
+* nieparametryczny test -  dla prób niezależnych (Whitney-Mann U, $\chi^2$ Fishera)
+
+* nieparametryczny test -  dla prób zależnych (Wilcoxona, Mcnamary)
+
+ 
+
+# wybór testu drzewo decyzyjne
+
+![](schemat wyboru testu.jpg){width=50%}
+
+# wybór testu drzewo decyzyjne
+
+![](dane niezależne.jpg){width=50%}
+
+# wybór testu drzewo decyzyjne
+
+![](dane zależne.jpg){width=50%}
+
+# Ogólna idea testowania istotności hipotezy zerowej -jeszcze raz
+
+* każda statystyka testowa (jak np. $Z, t, F, \chi^2,V,r$) posiada sprzypisany jej rozkład prawdopodobieństwa
+
+* wartości statystyk wyrażają najczęściej stosunek efektu eksperymentalnego do miary błędu jak n.p. odchylenie standardowe. W przypadku **t (test t-Studenta)** mamay stosunek: różnica średnich / dzielona przez / jakiś rodzaj błędu standardowego. W przypadku **F (ANOVA)** mamy stosunek: suma kwadratów modelu (odchylenie średnich grupowych od ogólnej średniej) / dzielona przez / suma kwadratów odchyleń konkretnych osób od ich średniej grupowej.
+
+* dla **każdej wartości** którejkolwiek z statystyk można określić prawdopodobieństwo skumulowane dla tej właśnie oraz wszystkich od niej mniejszych wartości w odpowiednim przypisanym do nich rozkładzie prawdopodobieństwa, któremu podlegają.
+
+# Ogólna idea testowania istotności hipotezy zerowej -jeszcze raz
+
+* Przyjrzyjmy się temu na przykładzie wartości t dla powtarzanych pomiarów/ manipulacji wewnątrzgrupowej / pretest-posttest
+
+* Wzór do obliczenia wartości t: &nbsp;  \[t = \frac{\bar{X}_D - \mu_0}{s_D/\sqrt n}\]
+* gdzie **$\bar{X}_D$** to średnia róznicy;  &nbsp; **$\mu_0$** to wartość różnicy gdyby przyjąć H0 czyli założenie że w populacji różnica między grupami wynosi dokładnie 0:); &nbsp; a **$s_D/\sqrt n$** to odchylenie standardowe różnicy podzielone przez pierwiastek z liczbności próby ....czyli .... błąd standardowy (patrz wcześniej w tym wykładzie - slajd 1 do 9=` test - T Studenta dla jednej próby
+
+* do tego celu wygenerujemy sobie 6 zestawów danych:
+* 3 z małą różnicą między średnimi: x1:90 x2:92 i podobnych odch. std. około 20
+* 3 z większą różnicą między średnimi: x1:90 x2:100 i podobnych odch. std. około 20
+
+```{r, ,echo=FALSE, message=FALSE}
+library(tidyverse)
+library(MASS)
+N1 <- 10 # Number of random samples
+set.seed(192837)
+# Target parameters for univariate normal distributions
+rho <- 0.782
+mu1a <- 92; s1a <- 22.6
+mu1b <- 90; s1b <- 22.6
+
+# Parameters for bivariate normal distribution
+mu1 <- c(mu1a,mu1b) # Mean 
+sigma1 <- matrix(c(s1a^2, s1a*s1b*rho, s1a*s1b*rho, s1b^2),
+           2) # Covariance matrix
+
+N2 <- 100 # Number of random samples
+set.seed(192837)
+# Target parameters for univariate normal distributions
+rho <- 0.782
+mu2a <- 92; s2a <- 22.6
+mu2b <- 90; s2b <- 22.6
+
+# Parameters for bivariate normal distribution
+mu2 <- c(mu2a,mu2b) # Mean 
+sigma2 <- matrix(c(s2a^2, s2a*s2b*rho, s2a*s2b*rho, s2b^2),
+           2) # Covariance matrix
+
+N3 <- 10000 # Number of random samples
+set.seed(192837)
+# Target parameters for univariate normal distributions
+rho <- 0.782
+mu3a <- 92; s3a <- 22.6
+mu3b <- 90; s3b <- 22.6
+
+# Parameters for bivariate normal distribution
+mu3 <- c(mu3a,mu3b) # Mean 
+sigma3 <- matrix(c(s3a^2, s3a*s3b*rho, s3a*s3b*rho, s3b^2),
+           2) # Covariance matrix
+
+N4 <- 10 # Number of random samples
+set.seed(192837)
+rho <- 0.782
+mu4a <- 100; s4a <- 22.6
+mu4b <- 90; s4b <- 22.6
+
+# Parameters for bivariate normal distribution
+mu4 <- c(mu4a,mu4b) # Mean 
+sigma4 <- matrix(c(s4a^2, s4a*s4b*rho, s4a*s4b*rho, s4b^2),
+           2) # Covariance matrix
+
+N5 <- 100 # Number of random samples
+set.seed(192837)
+# Target parameters for univariate normal distributions
+rho <- 0.782
+mu5a <- 100; s5a <- 22.6
+mu5b <- 90; s5b <- 22.6
+
+# Parameters for bivariate normal distribution
+mu5 <- c(mu5a,mu5b) # Mean 
+sigma5 <- matrix(c(s5a^2, s5a*s5b*rho, s5a*s5b*rho, s5b^2),
+           2) # Covariance matrix
+
+N6 <- 10000 # Number of random samples
+set.seed(192837)
+# Target parameters for univariate normal distributions
+rho <- 0.782
+mu6a <- 100; s6a <- 22.6
+mu6b <- 90; s6b <- 22.6
+
+# Parameters for bivariate normal distribution
+mu6 <- c(mu6a,mu6b) # Mean 
+sigma6 <- matrix(c(s6a^2, s6a*s6b*rho, s6a*s6b*rho, s6b^2),
+           2) # Covariance matrix
+
+bvn1 <- mvrnorm(N1, mu = mu1, Sigma = sigma1 ) # from MASS package
+colnames(bvn1) <- c("bvn1_X1","bvn1_X2")
+bvn2 <- mvrnorm(N2, mu = mu2, Sigma = sigma2 ) # from MASS package
+colnames(bvn2) <- c("bvn2_X1","bvn2_X2")
+bvn3 <- mvrnorm(N3, mu = mu3, Sigma = sigma3 ) # from MASS package
+colnames(bvn3) <- c("bvn3_X1","bvn3_X2")
+bvn4 <- mvrnorm(N4, mu = mu4, Sigma = sigma4 ) # from MASS package
+colnames(bvn4) <- c("bvn4_X1","bvn4_X2")
+bvn5 <- mvrnorm(N5, mu = mu5, Sigma = sigma5 ) # from MASS package
+colnames(bvn5) <- c("bvn5_X1","bvn5_X2")
+bvn6 <- mvrnorm(N6, mu = mu6, Sigma = sigma6 ) # from MASS package
+colnames(bvn6) <- c("bvn6_X1","bvn6_X2")
+dane1 <-data.frame(bvn1) %>% rename(x=bvn1_X1,y=bvn1_X2)
+dane2 <-data.frame(bvn2) %>% rename(x=bvn2_X1,y=bvn2_X2)
+dane3 <-data.frame(bvn3) %>% rename(x=bvn3_X1,y=bvn3_X2)
+dane4 <-data.frame(bvn4) %>% rename(x=bvn4_X1,y=bvn4_X2)
+dane5 <-data.frame(bvn5) %>% rename(x=bvn5_X1,y=bvn5_X2)
+dane6 <-data.frame(bvn6) %>% rename(x=bvn6_X1,y=bvn6_X2)
+```
+
+# Ogólna idea testowania istotności hipotezy zerowej -jeszcze raz
+## zobaczmy parametry wygenerowanych danych
+
+```{r echo=FALSE}
+sr1x<-mean(dane1$x)
+sr1y<-mean(dane1$y)
+sr2x<-mean(dane2$x)
+sr2y<-mean(dane2$y)
+sr3x<-mean(dane3$x)
+sr3y<-mean(dane3$y)
+sr4x<-mean(dane4$x)
+sr4y<-mean(dane4$y)
+sr5x<-mean(dane5$x)
+sr5y<-mean(dane5$y)
+sr6x<-mean(dane6$x)
+sr6y<-mean(dane6$y)
+
+odch_std1x<-sd(dane1$x)
+odch_std1y<-sd(dane1$y)
+odch_std2x<-sd(dane2$x)
+odch_std2y<-sd(dane2$y)
+odch_std3x<-sd(dane3$x)
+odch_std3y<-sd(dane3$y)
+odch_std4x<-sd(dane4$x)
+odch_std4y<-sd(dane4$y)
+odch_std5x<-sd(dane5$x)
+odch_std5y<-sd(dane5$y)
+odch_std6x<-sd(dane6$x)
+odch_std6y<-sd(dane6$y)
+n1<- length(dane1$x)
+n2<- length(dane2$x)
+n3<- length(dane3$x)
+n4<- length(dane4$x)
+n5<- length(dane5$x)
+n6<- length(dane6$x)
+
+
+N<-c("10","10","100","100","10000","10000")
+Parametry<-c("śr","odch_std","śr","odch_std","śr","odch_std")
+X <- round(c(sr1x,odch_std1x,sr2x,odch_std2x,sr3x,odch_std3x),1)
+Y <- round(c(sr1y,odch_std1y,sr2y,odch_std2y,sr3y,odch_std3y),1)
+dane_mala_roz <- data.frame(rbind(N,Parametry,X,Y)) %>%
+  rename("V1sr"=X1,"V1odch"=X2,"V2sr"=X3,"V2odch"=X4, "V3sr"=X5,"V3odch"=X6)
+X <- round(c(sr4x,odch_std4x,sr5x,odch_std5x,sr6x,odch_std6x),1)
+Y <- round(c(sr4y,odch_std4y,sr5y,odch_std5y,sr6y,odch_std6y),1)
+dane_duza_roz <- data.frame(rbind(N,Parametry,X,Y)) %>%
+  rename("V4sr"=X1,"V4odch"=X2,"V5sr"=X3,"V5odch"=X4, "V6sr"=X5,"V6odch"=X6)
+```
+
+```{r echo=FALSE, message = FALSE}
+library(kableExtra)
+dane_mala_roz %>%
+  kbl(caption = "Dane losowo wygenerowane - mała różnica X,Y") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+  
+  
+
+
+dane_duza_roz %>%
+  kbl(caption = "Dane losowo wygenerowane - duża różnica X,Y") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+
+
+# Ogólna idea testowania istotności hipotezy zerowej -jeszcze raz
+## zobaczmy Histogramy zmiennej różnica oraz.................
+
+```{r echo= FALSE}
+roz_dane1<-dane1$x-dane1$y
+roz_dane2<-dane2$x-dane2$y
+roz_dane3<-dane3$x-dane3$y
+roz_dane4<-dane4$x-dane4$y
+roz_dane5<-dane5$x-dane5$y
+roz_dane6<-dane6$x-dane6$y
+```
+
+```{r, echo= FALSE}
+par(mfrow=c(2,3))
+hist(roz_dane1,main="N= 10, sred roznica ~ 2", 
+     xlab="X-Y", breaks=c(-60,-50,-40,-30, -20, -10,0,10,20,30,40,50,60))
+abline(v=mean(roz_dane1),col= "red", lty= 2, lwd=3)
+hist(roz_dane2,main="N= 100, sred roznica ~ 2", 
+     xlab="X-Y",breaks=c(-60,-50,-40,-30, -20, -10,0,10,20,30,40,50,60))
+abline(v=mean(roz_dane2),col= "red", lty= 2, lwd=3)
+hist(roz_dane3,main="N= 10000, sred roznica ~ 2", 
+     xlab="X-Y",breaks=c(-70,-60,-50,-40,-30, -20, -10,0,10,20,30,40,50,60,70))
+abline(v=mean(roz_dane3),col= "red", lty= 2, lwd=3)
+hist(roz_dane4,main="N= 10, sred roznica ~ 10", 
+     xlab="X-Y",breaks=c(-60,-50,-40,-30, -20, -10,0,10,20,30,40,50,60))
+abline(v=mean(roz_dane4),col= "red", lty= 2, lwd=3)
+hist(roz_dane5,main="N= 100, sred roznica ~ 10", 
+     xlab="X-Y",breaks=c(-60,-50,-40,-30, -20, -10,0,10,20,30,40,50,60))
+abline(v=mean(roz_dane5),col= "red", lty= 2, lwd=3)
+hist(roz_dane6, main="N= 10000, sred roznica ~ 10", 
+     xlab="X-Y",breaks=c(-80,-70,-60,-50,-40,-30, -20, -10,0,10,20,30,40,50,60,70,80))
+abline(v=mean(roz_dane6),col= "red", lty= 2, lwd=3)
+```
+
+# Ogólna idea testowania istotności hipotezy zerowej -jeszcze raz
+## ..........oraz parametry dla 6 średnich różnic
+
+\[t = \frac{\bar{X}_D - \mu_0}{s_D/\sqrt n}\]
+
+```{r,echo=FALSE}
+md1<-mean(roz_dane1)
+md2<-mean(roz_dane2)
+md3<-mean(roz_dane3)
+md4<-mean(roz_dane4)
+md5<-mean(roz_dane5)
+md6<-mean(roz_dane6)
+sig1<-sd(roz_dane1)
+sig2<-sd(roz_dane2)
+sig3<-sd(roz_dane3)
+sig4<-sd(roz_dane4)
+sig5<-sd(roz_dane5)
+sig6<-sd(roz_dane6)
+l1<-length(roz_dane1)
+l2<-length(roz_dane2)
+l3<-length(roz_dane3)
+l4<-length(roz_dane4)
+l5<-length(roz_dane5)
+l6<-length(roz_dane6)
+SE1<-sig1/sqrt(length(roz_dane1))
+SE2<-sig2/sqrt(length(roz_dane2))
+SE3<-sig3/sqrt(length(roz_dane3))
+SE4<-sig4/sqrt(length(roz_dane4))
+SE5<-sig5/sqrt(length(roz_dane5))
+SE6<-sig6/sqrt(length(roz_dane6))
+T1<-md1/SE1
+T2<-md2/SE2
+T3<-md3/SE3
+T4<-md4/SE4
+T5<-md5/SE5
+T6<-md6/SE6
+N <-c("10","100","10000","10","100","10000")
+sred_roz <- round(c(md1,md2,md3,md4,md5,md6),1)
+odch_std_roz <- round(c(sig1,sig2,sig3,sig4,sig5,sig6),2)
+blad_std <- round(c(SE1,SE2,SE3,SE4,SE5,SE6),2)
+T_stat <-round(c(T1,T2,T3,T4,T5,T6),2)
+df <-c("9","99","9999","9","99","9999")
+p_value <-round(c(2*pt(T1, 9, lower=FALSE), 2*pt(T2, 99, lower=FALSE),
+                  2*pt(T3, 9999, lower=FALSE),2*pt(T4, 9, lower=FALSE),
+                  2*pt(T5, 99, lower=FALSE),2*pt(T6, 9999, lower=FALSE)),3)
+
+T_able <-data.frame(rbind(N,df,sred_roz,odch_std_roz,blad_std,T_stat,p_value)) %>%
+  rename("Para1"=X1,"Para2"=X2,"Para3"=X3,"Para4"=X4, "Para5"=X5,"Para6"=X6)
+```
+
+```{r, echo=FALSE}
+T_able %>%
+  kbl(caption = "Dane wygenerowane losowo  - różnica X-Y") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+# Rozkłady gęstości prawd. t-Studenta z różnymi (df = 9; 99; 9999) stopniami swobody
+
+```{r,echo=FALSE,fig.height=4}
+range <- seq(-5,5,.001)  
+
+op<-par(mfrow=c(1,3),pty="s")
+
+op<-par(mar=c(2,2,3,2),pty="s")
+
+ for(i in c(9,99,9999)){
+   plot(range,dnorm(range),col= "Yellow",type="l",lty=1,lwd=2,
+        xlab="t",ylab="",
+        cex.axis=1,cex.axis=0.8)
+   lines(range,dt(range,df=i),col= "red",lty=2,lwd=2)
+   mtext(paste("df=",i),cex=1.2)
+   mtext(paste("zolta linia - rozklad normalny"),cex=.7,line=2)
+ }
+```
+
+# Rozkłady skumulowanego prawd.t-Studenta z różnymi (df = 9; 99; 9999) stopniami swobody
+
+```{r,echo=FALSE,fig.height=4}
+range <- seq(-5,5,.001)  
+
+op<-par(mfrow=c(1,3),pty="s")
+
+op<-par(mar=c(2,2,3,2),pty="s")
+
+ for(i in c(9,99,9999)){
+   plot(range,pnorm(range),col= "Yellow",type="l",lty=1,lwd=2,
+        xlab="t",ylab="",
+        cex.axis=1,cex.axis=0.8)
+   lines(range,pt(df=i,range),col= "red",lty=2,lwd=2)
+   mtext(paste("df=",i),cex=1.2)
+   mtext(paste("linia zolta - rozklad normalny"),cex=.7,line=2)
+ }
+```
+
+# Skumulowane prawdopodobieństwo i istotność
+```{r include=T, echo=F}
+Cohens_drm_V1 <-round((mean(dane1$x)-mean(dane1$y))/
+                    sqrt((sd(dane1$x)^2+sd(dane1$y)^2)
+                         -2*cor(dane1$x,dane1$y,
+                                method = "pearson") *sd(dane1$x)*
+                           sd(dane1$y))*
+  sqrt(2*(1-cor(dane1$x,dane1$y,method = "pearson"))),3)
+
+Cohens_drm_V2 <-round((mean(dane2$x)-mean(dane2$y))/
+                    sqrt((sd(dane2$x)^2+sd(dane2$y)^2)
+                         -2*cor(dane2$x,dane2$y,
+                                method = "pearson") *sd(dane2$x)*
+                           sd(dane2$y))*
+  sqrt(2*(1-cor(dane2$x,dane2$y,method = "pearson"))),3)
+
+Cohens_drm_V3 <-round((mean(dane3$x)-mean(dane3$y))/
+                    sqrt((sd(dane3$x)^2+sd(dane3$y)^2)
+                         -2*cor(dane3$x,dane3$y,
+                                method = "pearson") *sd(dane3$x)*
+                           sd(dane3$y))*
+  sqrt(2*(1-cor(dane3$x,dane3$y,method = "pearson"))),3)
+range <- seq(-5,5,.001)  
+plot(range,pt(df=9,range),col= "Blue",type="l",lty=1,
+        xlab="t",ylab="")
+lines(range,pt(df=99,range),col= "Red",type="l",lty=1,
+        xlab="t",ylab="")
+mtext("df = 9 & df = 99",cex=1.2)
+abline(v=T1)
+text(0.25, 0, "t = 0.8")
+text(-.2, .05,"sred_roz = 3.6")
+text(-.4, .1,"d = ")
+text(.3, .1, Cohens_drm_V1)
+text(.2, .15, "N = 10")
+abline(v=T2)
+text(2.5, 0, "t = 1.76")
+text(2.7, .05, "sred_roz = 2.7")
+text(2.1, .1, "d = ")
+text(2.4, .15, "N = 100")
+text(2.8, .1, Cohens_drm_V2)
+abline(h=1-(p_value[1]/2),lty=2,col= "blue")
+text(-3.5,1-(p_value[1]/2) +.02, 1-(p_value[1]/2))
+abline(h=1-(p_value[2]/2),lty=2,col= "red")
+text(-3.5,1-(p_value[2]/2) +.02, 1-(p_value[2]/2))
+```
+
+
+```{r}
+p_value[1]/2 # istotność: 1-stronne prawdopodob.
+p_value[2]/2 # istotność: 1-stronne prawdopodob.
+p_value[1] # istotność: 2-stronne prawdopodob.
+p_value[2] # istotność: 2-stronne prawdopodob.
+t.test(dane1$x,dane1$y,paired = TRUE)
+t.test(dane2$x,dane2$y,paired = TRUE)
+```
+
+# Skumulowane prawdopodobieństwo i istotność
+## to samo z perspektywy rozkładu gęstości prawd.
+```{r include=T, echo=F}
+range <- seq(-5,5,.001)
+plot(range,dt(df=9,range),col= "blue",type="l",lty=1,
+        xlab="t",ylab="")
+lines(range,dt(df=99,range),col= "red",type="l",lty=1)
+mtext("df = 9 & df = 99",cex=1.2)
+abline(v=T1)
+text(0.25, .1, "t = 0.8")
+text(-.2, .12,"sred_roz = 3.6")
+text(-.4, .14,"d = ")
+text(.3, .14, Cohens_drm_V1)
+text(.2, .16, "N = 10")
+abline(v=T2)
+text(2.4, .1, "t = 1.76")
+text(2.8, .12, "sred_roz = 2.7")
+text(2.2, .14, "d = ")
+text(2.4, .16, "N = 100")
+text(2.8, .14, Cohens_drm_V2)
+abline(h=1-(p_value[1]/2),lty=2,col= "red")
+text(-3.5,1-(p_value[1]/2) +.02, 1-(p_value[1]/2))
+abline(h=1-(p_value[2]/2),lty=2,col= "red")
+text(-3.5,1-(p_value[2]/2) +.02, 1-(p_value[2]/2))
+```
+
+# Rozkłady t-Studenta dla małej różnicy (~2) oraz 9;99,9999 df
+## odległość wartości t od 0 i prawdopodbieństwo t pod rozkładem H0
+
+* Proszę zwrócić uwagę, że wielkość efektu (standaryzowana różnica) jest prawie taka sama a nawet wręcz maleje
+* Podsumowując: sedno istotności to jakby "informacja ile wynosi szansa, że nie zarobię 0 PLN" :) i tylko tyle
+* Wielkość efektu (ile zarobię) o wiele ciekawsza; oraz prawdopodoieństwo beta (błąd II rodzaju)
+```{r,echo=FALSE,fig.height=4}
+range <- seq(-17,17,.001)  
+
+op<-par(mfrow=c(1,3),pty="s")
+
+op<-par(mar=c(2,2,3,2),pty="s")
+
+range <- seq(-14,14,.001)
+plot(range,dt(df=9,range),col= "blue",type="l",lty=1,
+        xlab="t",ylab="")
+mtext("df = 9",cex=1.2)
+abline(v=T1)
+text(5, .35,"d = ")
+text(10, .35, Cohens_drm_V1)
+text(5, .3,"p = ")
+text(10, .3, p_value[1]/2)
+plot(range,dt(df=99,range),col= "blue",type="l",lty=1,
+        xlab="t",ylab="")
+mtext("df = 99",cex=1.2)
+abline(v=T2)
+text(5, .35,"d = ")
+text(10, .35, Cohens_drm_V2)
+text(5, .3,"p = ")
+text(10, .3, p_value[2]/2)
+plot(range,dt(df=9999,range),col= "blue",type="l",lty=1,
+        xlab="t",ylab="")
+mtext("df = 9999",cex=1.2)
+abline(v=T3)
+text(5, .35,"d = ")
+text(10, .35, Cohens_drm_V3)
+text(5, .3,"p = ")
+text(10, .3, p_value[3]/2)
+```
+
+# Typy testów t
+## test dla jednej próby
+
+\[t = \frac{\bar{X_D} - \mu_0}{s/\sqrt n}\]
+
+* gdzie $\bar{X_D}$ to różnica między średnią z próbki a średnią populacyjną
+
+* gdzie $s$ to odchylenie standardowe dla próbki
+
+* Test stosujemy w przypadku gdy chcemy sprawdzić czy różnica między nasza próbka a jakąś znaną/ustaloną/ założoną wartością w poulacji jest istotna ststystycznie.
+
+
+# Typy testów t
+## test dla prób niezależnych
+
+gdy grupy są równoliczne oraz prawie identyczne
+
+\[t = \frac{\bar{X}_1 - \bar{X}_2}{s_p \sqrt\frac{2}{n}}\]
+
+gdzie
+
+\[s_p = \sqrt{\frac{s_{X_1}^2+s_{X_2}^2}{2}}\]
+
+# Typy testów t
+## test dla prób niezależnych
+
+
+* równe i nierówne liczbności grup oraz w miarę podobne wariancje ($\frac{1}{2} < \frac{s_{x_1}}{s_{x_2}} < 2$)
+
+\[t = \frac{\bar {X}_1 - \bar{X}_2}{s_p \cdot \sqrt{\frac{1}{n_1}+\frac{1}{n_2}}}\]
+gdzie \[s_p = \sqrt{\frac{\left(n_1-1\right)s_{X_1}^2+\left(n_2-1\right)s_{X_2}^2}{n_1+n_2-2}}\] to wspólna wariancja
+
+# Typy testów t
+## test dla prób niezależnych - Test Welcha różne liczbnosci grup i nierówne wariancje
+
+* nierówne wariancje $s_{X_1} > 2s_{X_2}$ lub $s_{X_2} > 2s_{X_1}$
+* W SPSSie podajemy  Test Welcha
+* Niektórzy twierdzą, że z powodu braku czułości testu Levena na mierówność wariancji właściwie powinno się wykonywać tylko test T-Welcha dla grup niezależnych
+
+\[t = \frac{\bar{X}_1 - \bar{X}_2}{s_{\bar\Delta}}\]
+gdzie
+\[s_{\bar\Delta} = \sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}\]
+* Stopnie swobody
+
+\[\mathrm{df} = \frac{\left(\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}\right)^2}{\frac{\left(s_1^2/n_1\right)^2}{n_1-1} + \frac{\left(s_2^2/n_2\right)^2}{n_2-1}}\]
+
+# Typy testów t
+## test dla prób niezależnych - nieparametryczny Test U-Manna Withneya
+
+ brak spełnionych załozeń
+ 
+ - normalności
+ - zmienne porządkowe zamiast ilościowych
+ 
+\[U_1=R_1 - {n_1(n_1+1) \over 2}\]
+\[U_2=R_2 - {n_2(n_2+1) \over 2}\]
+\[U_1 + U_2 = R_1 - {n_1(n_1+1) \over 2} + R_2 - {n_2(n_2+1) \over 2}\]
+
+- gdzie $U_1$ lub $U_2$  to  łączna możliwa suma rang minus empiryczna suma rang dla grupy 1 oraz 2 odpowiednio
+- Pdawane jest mniejsze U jako statystyka
+- H0: $U_1 = U_2$ 
+- dla konkretnych liczbności $n_1$ oraz $n_2$ wartości krytyczne mniejszego $U$ 
+
+# Typy testów t
+## test dla prób niezależnych - nieparametryczny Test U-Manna Withneya
+
+
+```{r, echo = FALSE}
+library(kableExtra)
+
+MWU<-read.table("Niezalezne_UMW.txt",
+                              header=T, sep = "\t", dec = ",",
+                            na.strings=c(""," ","NA"))
+
+options(knitr.kable.NA = '')
+MWU %>%
+  kbl(caption = "Grupy niezależne: Dane porangowane",align = "c") %>%
+  kable_classic(full_width = F, html_font = "Cambria", position = "center")
+```
+# Typy testów t
+## test dla prób niezależnych - nieparametryczny Test U-Manna Withneya
+
+ * $U_1=R_1 - {n_1(n_1+1) \over 2}$ ; $U_2=R_2 - {n_2(n_2+1) \over 2}$
+ * $9.5=45.5- {8(9) \over 2}$ ; $46.5=74.5 - {7(8) \over 2}$
+
+![](UMW_crit.jpg){width=50%}
+
+# Typy testów t
+## test dla prób niezależnych - nieparametryczny Test Chi^2 Fishera
+- dwie grupy niezależne
+- zmienne nominalne 
+
+```{r echo=FALSE}
+library(kableExtra)
+
+Studiuje<- c(	1,	9,	10)
+NieStudiuje <- c( 11,	3,	14)
+Kolumna_total<- c(	12,	12,	24)
+conttable <- data.frame(rbind(Studiuje,NieStudiuje,Kolumna_total)) %>%
+rename("Faceci"=X1,"Kobiety"=X2,"Wiersz total"=X3)
+conttable %>%
+  kbl(caption = "Czy M i K po równo na Uniwersytecie") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+# Typy testów t
+## test dla prób niezależnych - nieparametryczny Test Chi^2 Fishera
+
+```{r echo=FALSE}
+library(kableExtra)
+
+
+Studiuje<- c(	"a",	"b",	"a+b")
+NieStudiuje <- c( "c",	"d", "c+d")
+Kolumna_total<- c("a+c",	"b+d","a+b+c+d(=n)")
+conttable <- data.frame(rbind(Studiuje,NieStudiuje,Kolumna_total)) %>%
+rename("Faceci"=X1,"Kobiety"=X2,"Wiersz total"=X3)
+conttable %>%
+  kbl(caption = "Czy M i K po równo na Uniwersytecie") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+* jak obliczyć prawdopodobieństwo, że proporcje nie są zerowe:
+
+\[p = \frac{ \displaystyle{{a+b}\choose{a}} \displaystyle{{c+d}\choose{c}} }{ \displaystyle{{n}\choose{a+c}} } = \frac{ \displaystyle{{a+b}\choose{b}} \displaystyle{{c+d}\choose{d}} }{ \displaystyle{{n}\choose{b+d}} } = \frac{(a+b)!~(c+d)!~(a+c)!~(b+d)!}{a!~~b!~~c!~~d!~~n!}\]
+
+\[p = { {\tbinom{10}{1}} {\tbinom{14}{11}} }/{ {\tbinom{24}{12}} } = \tfrac{10!~14!~12!~12!}{1!~9!~11!~3!~24!} \approx 0.001346076\]
+
+# Typy testów t
+## test dla prób zależnych / pomiarów powtarzanych 
+
+\[t = \frac{\bar{X}_D - \mu_0}{s_D/\sqrt n}\]
+
+- gdy rozkłady zmiennych są normalne
+- zmienne mają charakter ilościowy
+
+# Typy testów t
+## test dla prób zależnych / pomiarów powtarzanych  - Test Wilcoxona
+
+- brak normalności
+- zmienne porządkowe
+
+```{r echo=FALSE}
+library(kableExtra)
+Wilcox_rep <-read.table("Rangi_repeat_Wilcox.txt",
+                              header=T, sep = "\t", dec = ",",
+                              na.strings=c(""," ","NA"))
+Wilcox_rep %>%
+  kbl(caption = "Dane Powtarzane: źródło Wikipedia",align = "c") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+# Typy testów t
+## test dla prób zależnych / pomiarów powtarzanych  - Test Wilcoxona
+
+- Statystyka W:
+
+\[W = \sum_{i=1}^{N_r} [\znak(x_{2,i} - x_{1,i}) \cdot R_i]\], suma rang z znakiem
+
+- Przykład na danych z Wiki:
+\[W = 1.5+1.5-3-4-5-6+7+8+9=9\] 
+\[W| < W_{\operatorname{kryt}(\alpha = 0.05,\ 9 \text{, 2-stronny})} = 15\]
+\[p =  0.6113\]
+
+# Typy testów t
+## test dla prób zależnych / pomiarów powtarzanych - Test Mcnemary
+
+brak normalności
+zmienne nomianalne: odpowiedzi tak/nie
+
+- Plan pretest postest, a odpowiedzią jest "tak" lub "nie" na to samo pytanie
+- PRE: palisz papierosy? - TAK = Interwencja:Odwyk = POST: palisz papierosy? - NIE
+
+```{r message=FALSE}
+library(tidyverse)
+## wczytujemy dane i nazywamy skrótowo PRE i POST
+binary_pre_post <-read.table("daneszpital.txt",
+                              header=T, sep = "\t", dec = ",",
+                              na.strings=c(""," ","NA")) %>%
+  rename("PRE" = X14..ogolne.poczucie..ze.moze.mi.pomoc, "POST" = X13..ogolne.poczucie..ze.moze.mi.pomoc)
+glimpse(binary_pre_post)
+```
+
+# Test McNemary Chi^ dla prób zależnych
+- Tworzymy tabelę krzyżową
+- W tym teście, wszystko czego potrzebujemy to liczba zmian:
+- z 0 na 1 - nazywamy N01
+- z 1 do 0, nazywamy N10.
+
+- Całkowita liczba zmian wynosi zatem n01 + n10, a ponieważ zgodnie z hipotezą zerową zmiany w każdym kierunku są równie prawdopodobne, możemy powiedzieć, że oczekiwana liczba zmian w każdym kierunku wynosi (n01 + n10) / 2. w tym konkretnym przypadku zmiana z 1 na 0 = 23 (n10) a z 0 na 1 = 8 (n01); oczekiwana to 31/2 = 15,5.
+
+```{r}
+contingency_table<-table(binary_pre_post)
+contingency_table
+
+n00<-contingency_table[1,1] ## pre 0 post 0
+n10<-contingency_table[2,1] ## pre 1 post 0
+n01<-contingency_table[1,2] ## pre 0 post 1
+n11<-contingency_table[2,2] ## pre 1 post 1
+
+# patrzamy
+Contg_table_cells <- as.data.frame (c(n00, n10, n01, n11))
+Contg_table_cells
+```
+
+# Test McNemary Chi^ dla prób zależnych
+- Czy liczba zmian przekracza 10? Tak! Przekracza. Możemy liczyć Mcnemarę:)
+- Jeżeli nie przekracza -> dokładny test dwumianowy, nie będę go pokazywał 
+```{r}
+print(paste('n01 + n10 = ',n01+n10))
+```
+
+Liczymy statystyki Chi^ oraz p-value
+H0 można odrzucić:) a czy kierunek zmian jest zgodny z "hipotezami" to już inna Bajka:)
+
+```{r}
+test_statistic<-(abs(n10-n01)-1)^2/(n10+n01)
+p_value<-pchisq(test_statistic,df=1,lower.tail=FALSE)
+
+test_statistic
+p_value
+
+contingency_table<-table(binary_pre_post)
+mcnemar.test(contingency_table)
+```
